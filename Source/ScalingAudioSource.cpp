@@ -29,7 +29,7 @@ void ScalingAudioSource::setScalingRatio(const double samplesInPerOutputSample)
     jassert (samplesInPerOutputSample > 0);
 
     const SpinLock::ScopedLockType sl (ratioLock);
-    ratio = jmax (0.0, samplesInPerOutputSample);
+    ratio = jmax (0.0, 1.0/samplesInPerOutputSample);
 }
 
 void ScalingAudioSource::releaseResources()
@@ -69,5 +69,4 @@ void ScalingAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& info)
     float** outPtr = info.buffer->getArrayOfWritePointers();
 
     ltfat_pv_execute_s(pv,inPtr,inLen, channels, localRatio, outLen, outPtr);
-
 }

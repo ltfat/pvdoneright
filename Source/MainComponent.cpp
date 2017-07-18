@@ -65,6 +65,9 @@ public:
         addAndMakeVisible(fileButton);
         fileButton.addListener(this);
 
+        addAndMakeVisible(deviceManagerButton);
+        deviceManagerButton.addListener(this);
+
         pBar.setPercentageDisplay(true);
         addAndMakeVisible(pBar);
 
@@ -73,14 +76,17 @@ public:
 
         setSize (600, 200);
 
-        showAudioDeviceManagerDialog();
+        //showAudioDeviceManagerDialog();
 
         // specify the number of input and output channels that we want to open
         setAudioChannels (0, 2);
         File folder(File::getSpecialLocation(File::userMusicDirectory));
         fileButton.setButtonText("Load audio file");
-        // fsource.setFile(File("/storage/sdcard0/Music/Walk.wav"));
-        fsource.setFile(File("~/Desktop/noise.wav"));
+//#ifdef JUCE_ANDROID
+        fsource.setFile(File("/storage/sdcard0/Music/Walk.wav"));
+//#else
+//        fsource.setFile(File("~/Desktop/noise.wav"));
+//#endif
         fsource.start();
     }
 
@@ -140,6 +146,7 @@ public:
         // update their positions.
         stretchSlider.setBounds(10, 20, getWidth() - 10, 20);
         fileButton.setBounds(10, 45, getWidth() / 4, 20);
+        deviceManagerButton.setBounds(20 + getWidth() / 4, 45, getWidth() / 4 , 20);
         pBar.setBounds(10, 75, getWidth() / 4, 20);
     }
 
@@ -170,6 +177,10 @@ public:
                 fsource.start();
             }
 #endif
+        }
+        else if (b == &deviceManagerButton)
+        {
+            showAudioDeviceManagerDialog();
         }
     }
 
@@ -225,6 +236,7 @@ private:
 
     ScalingSlider stretchSlider;
     TextButton fileButton{"Load Audio File"};
+    TextButton deviceManagerButton{"Open Device Manager"};
     double cpuUsage{0.0};
     ProgressBar pBar{cpuUsage};
 

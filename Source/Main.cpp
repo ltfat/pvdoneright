@@ -70,7 +70,12 @@ public:
             setContentOwned (createMainContentComponent(), true);
             setResizable (true, true);
 
+            //
+#ifdef JUCE_ANDROID
+            setFullScreen(true);
+#else
             centreWithSize (getWidth(), getHeight());
+#endif
             setVisible (true);
         }
 

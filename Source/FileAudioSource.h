@@ -24,6 +24,6 @@ private:
     AudioFormatManager formatManager;
     AudioFormatReader* reader;
     int samplesToPreload {(int)1e6};
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FileAudioSource)
 };

@@ -13,8 +13,8 @@
 FileAudioSource::FileAudioSource()
 {
     formatManager.registerBasicFormats();
-    
-    
+
+
     filePreloadThread.startThread();
 
 
@@ -42,7 +42,7 @@ void FileAudioSource::setFile(File f)
         formatReaderSource = new AudioFormatReaderSource(reader, true);
         formatReaderSource->setLooping(true);
 
-        setSource(formatReaderSource,samplesToPreload,&filePreloadThread,reader->sampleRate);
+        setSource(formatReaderSource, samplesToPreload, &filePreloadThread, reader->sampleRate);
     }
 
 }

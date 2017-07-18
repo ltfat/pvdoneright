@@ -17,7 +17,7 @@ ScalingAudioSource::ScalingAudioSource(AudioSource* const inputSource,
     : input(inputSource, deleteInputWhenDeleted),
       maxRatio(maxScalingRatio),
       ratio(1.0),
-      numChannels (2)
+      numChannels(numChannels)
 {
 }
 
@@ -44,7 +44,7 @@ void ScalingAudioSource::prepareToPlay (int samplesPerBlockExpected, double samp
 {
     const int scaledBlockSize = roundToInt (samplesPerBlockExpected * maxRatio);
 
-    ltfat_pv_init_s(maxRatio, numChannels, samplesPerBlockExpected, &pv);
+    int status = ltfat_pv_init_s(maxRatio, numChannels, samplesPerBlockExpected, &pv);
     input->prepareToPlay(scaledBlockSize, sampleRate);
 
     buffer.setSize (numChannels, scaledBlockSize);
@@ -60,7 +60,9 @@ void ScalingAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& info)
 
     int outLen = info.numSamples;
     int inLen = ltfat_pv_nextinlen_s(pv,outLen);
-    int channels = info.buffer->getNumChannels();
+    // cout << "inLen=" << inLen << ", outLen=" << outLen << endl;
+
+    int channels = jmin(info.buffer->getNumChannels(),numChannels);
 
     AudioSourceChannelInfo readInfo (&buffer, 0, inLen);
     input->getNextAudioBlock (readInfo);
@@ -69,4 +71,10 @@ void ScalingAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& info)
     float** outPtr = info.buffer->getArrayOfWritePointers();
 
     ltfat_pv_execute_s(pv,inPtr,inLen, channels, localRatio, outLen, outPtr);
+
+    if(info.buffer->getNumChannels() > numChannels)
+    {
+
+    }
+
 }

@@ -29,12 +29,12 @@ public:
 
     double getValueFromText( const String& scalstr )
     {
-        double scal = Slider::getValueFromText(scalstr)/100.0;
+        double scal = Slider::getValueFromText(scalstr) / 100.0;
 
         if (scal >= 1.0)
-            scal = (scal - 1.0)/(maxRatio - 1);
+            scal = (scal - 1.0) / (maxRatio - 1);
         else
-            scal = (scal - 1.0)*maxRatio/(maxRatio - 1.0);
+            scal = (scal - 1.0) * maxRatio / (maxRatio - 1.0);
 
         return scal;
     }
@@ -51,19 +51,42 @@ class MainContentComponent   :
     public AudioAppComponent,
     public Slider::Listener,
     public Button::Listener,
-    public KeyListener
+    public KeyListener,
+    public FileBrowserListener,
+    public FilenameComponentListener,
+    public ChangeListener
 
 {
 public:
     //==============================================================================
     MainContentComponent()
     {
+        MainContentComponent::formatManager.registerBasicFormats();
+        ffilter = new WildcardFileFilter(MainContentComponent::formatManager.getWildcardForAllFormats(),
+                                         String("*"), String("Audio Files"));
+
+        fsource = new FileAudioSource(&MainContentComponent::formatManager, false);
+        fsource->addChangeListener(this);
+        ssource = new ScalingAudioSource(fsource, false, 2, maxRatio);
+        dirCont = new DirectoryContentsList(ffilter, directoryMonitoringThread);
+        fileList = new FileListComponent(*dirCont);
+        fileList->addListener(this);
+
+        fnamecomp = new FilenameComponent(String("Directory"), File(), false, true, false, String(), String(), String());
+        addAndMakeVisible(fnamecomp);
+        fnamecomp->addListener(this);
+
+        addAndMakeVisible(fileList);
+
         addAndMakeVisible (stretchSlider);
         stretchSlider.setRange (-1, 1, 0.0005);
         stretchSlider.addListener(this);
 
         addAndMakeVisible(fileButton);
         fileButton.addListener(this);
+
+        addAndMakeVisible(upButton);
+        upButton.addListener(this);
 
         addAndMakeVisible(deviceManagerButton);
         deviceManagerButton.addListener(this);
@@ -74,25 +97,30 @@ public:
         addKeyListener(this);
 
 
-        setSize (600, 200);
+        setSize (400, 600);
 
         //showAudioDeviceManagerDialog();
 
         // specify the number of input and output channels that we want to open
         setAudioChannels (0, 2);
-        File folder(File::getSpecialLocation(File::userMusicDirectory));
+        File folder(String("~"));
         fileButton.setButtonText("Load audio file");
 //#ifdef JUCE_ANDROID
-        fsource.setFile(File("/storage/sdcard0/Music/Walk.wav"));
+        fsource->setFile(File("/storage/sdcard0/Music/Walk.wav"));
 //#else
 //        fsource.setFile(File("~/Desktop/noise.wav"));
 //#endif
-        fsource.start();
+//
+        // dirCont->setDirectory(folder, true, true);
+        fnamecomp->setCurrentFile(folder, true, sendNotification);
+        fsource->start();
+        directoryMonitoringThread.startThread();
     }
 
     ~MainContentComponent()
     {
         shutdownAudio();
+        directoryMonitoringThread.stopThread(1000);
     }
 
     //==============================================================================
@@ -105,7 +133,7 @@ public:
         // but be careful - it will be called on the audio thread, not the GUI thread.
 
         // For more details, see the help for AudioProcessor::prepareToPlay()
-        ssource.prepareToPlay(samplesPerBlockExpected, sampleRate);
+        ssource->prepareToPlay(samplesPerBlockExpected, sampleRate);
         // ssource.setScalingRatio(1.0/2.0596);
     }
 
@@ -117,7 +145,7 @@ public:
 
         // Right now we are not producing any data, in which case we need to clear the buffer
         // (to prevent the output of random noise)
-        ssource.getNextAudioBlock(bufferToFill);
+        ssource->getNextAudioBlock(bufferToFill);
 
         cpuUsage = AudioAppComponent::deviceManager.getCpuUsage();
     }
@@ -148,6 +176,9 @@ public:
         fileButton.setBounds(10, 45, getWidth() / 4, 20);
         deviceManagerButton.setBounds(20 + getWidth() / 4, 45, getWidth() / 4 , 20);
         pBar.setBounds(10, 75, getWidth() / 4, 20);
+        fnamecomp->setBounds(10, 100, getWidth() - 80, 20);
+        upButton.setBounds(getWidth() - 70, 100, 60, 20);
+        fileList->setBounds(10, 130, getWidth() - 20, getHeight() - 90);
     }
 
     void sliderValueChanged (Slider* slider) override
@@ -159,7 +190,8 @@ public:
                 scal = 1.0 + (maxRatio - 1.0) * scal;
             else
                 scal = 1.00 + scal * ((maxRatio - 1.0) / maxRatio);
-            ssource.setScalingRatio(scal);
+            ssource->setScalingRatio(scal);
+            // cout << scal << endl;
         }
     }
 
@@ -167,14 +199,14 @@ public:
     {
         if (b == &fileButton)
         {
-            FileChooser fc ("Choose audio file", File::getSpecialLocation (File::userHomeDirectory), "*",false);
+            FileChooser fc ("Choose audio file", File::getSpecialLocation (File::userHomeDirectory), "*", false);
 #ifndef JUCE_ANDROID
             if (fc.browseForFileToOpen())
             {
                 File f(fc.getResult());
 
-                fsource.setFile(f);
-                fsource.start();
+                fsource->setFile(f);
+                fsource->start();
             }
 #endif
         }
@@ -182,13 +214,18 @@ public:
         {
             showAudioDeviceManagerDialog();
         }
+        else if (b == &upButton)
+        {
+            File parent = fnamecomp->getCurrentFile().getParentDirectory();
+            fnamecomp->setCurrentFile(parent, true, sendNotification);
+        }
     }
 
     bool keyPressed (const KeyPress &key, Component *originatingComponent)
     {
         double jumpby =  stretchSlider.getInterval();
 
-        jumpby *=10;
+        jumpby *= 10;
 
         if (key == KeyPress::upKey || key == KeyPress::rightKey)
         {
@@ -205,6 +242,71 @@ public:
     bool keyStateChanged (bool isKeyDown, Component *originatingComponent)
     {
         return true;
+    }
+
+    void selectionChanged ()
+    {}
+
+    void fileClicked (const File &file, const MouseEvent &e)
+    {}
+
+    void fileDoubleClicked (const File &file)
+    {
+        if (file.isDirectory())
+        {
+            fnamecomp->setCurrentFile(file, true, sendNotification);
+        }
+        else
+        {
+            fsource->setFile(file);
+            fsource->start();
+        }
+    }
+
+    void browserRootChanged (const File &newRoot)
+    {}
+
+    void filenameComponentChanged (FilenameComponent *fileComponentThatHasChanged)
+    {
+        dirCont->setDirectory(fileComponentThatHasChanged->getCurrentFile(), true, true);
+    }
+
+    void changeListenerCallback(ChangeBroadcaster* source)
+    {
+        if (fsource->hasStreamFinished())
+        {
+            if (fnamecomp->getCurrentFile() == fsource->file.getParentDirectory() )
+            {
+                int currIdx = -1;
+                for (int fIdx = 0; fIdx < dirCont->getNumFiles(); fIdx++)
+                {
+                    File ftmp = dirCont->getFile(fIdx);
+                    if (fsource->file == ftmp)
+                    {
+                        currIdx = fIdx;
+                        break;
+                    }
+                }
+
+                if (currIdx < 0) return;
+
+                String wildcards= MainContentComponent::formatManager.getWildcardForAllFormats().replace("*","");
+
+                for (int fIdx = currIdx + 1; fIdx < dirCont->getNumFiles(); fIdx++)
+                {
+                    File ftmp = dirCont->getFile(fIdx);
+                    if (!ftmp.isDirectory() && ftmp.hasFileExtension(wildcards))
+                    {
+                        fileList->setSelectedFile(ftmp);
+                        fsource->setFile(ftmp);
+                        fsource->start();
+                        break;
+                    }
+                }
+
+
+            }
+        }
     }
 
     void showAudioDeviceManagerDialog()
@@ -227,21 +329,33 @@ public:
     }
 
 
+
 private:
     //==============================================================================
 
     // Your private member variables go here...
-    FileAudioSource fsource;
-    ScalingAudioSource ssource{&fsource, false, 2, maxRatio};
+    ScopedPointer<FileAudioSource> fsource;
+    ScopedPointer<ScalingAudioSource> ssource;
 
     ScalingSlider stretchSlider;
     TextButton fileButton{"Load Audio File"};
     TextButton deviceManagerButton{"Open Device Manager"};
+    TextButton upButton{"Up"};
     double cpuUsage{0.0};
     ProgressBar pBar{cpuUsage};
 
+    ScopedPointer<DirectoryContentsList> dirCont;
+    ScopedPointer<FileListComponent> fileList;
+    TimeSliceThread directoryMonitoringThread{"dirMonThread"};
+    ScopedPointer<WildcardFileFilter> ffilter;
+    ScopedPointer<FilenameComponent> fnamecomp;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
+public:
+    static AudioFormatManager formatManager;
 };
+
+AudioFormatManager MainContentComponent::formatManager{};
 
 
 // (This function is called by the app startup code to create our main component)

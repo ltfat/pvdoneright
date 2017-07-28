@@ -10,13 +10,10 @@
 
 #include "FileAudioSource.h"
 
-FileAudioSource::FileAudioSource()
+FileAudioSource::FileAudioSource(AudioFormatManager* afm, bool setOwnership)
+    : formatManager(afm,setOwnership)
 {
-    formatManager.registerBasicFormats();
-
-
     filePreloadThread.startThread();
-
 
 }
 
@@ -26,7 +23,6 @@ FileAudioSource::~FileAudioSource()
     stop();
     //reader = nullptr;
     setSource(nullptr);
-
 }
 
 void FileAudioSource::setFile(File f)
@@ -35,12 +31,13 @@ void FileAudioSource::setFile(File f)
     setSource(nullptr);
     formatReaderSource = nullptr;
 
-    reader = formatManager.createReaderFor(f);
+    reader = formatManager->createReaderFor(f);
 
     if (reader != nullptr)
     {
+        file = f;
         formatReaderSource = new AudioFormatReaderSource(reader, true);
-        formatReaderSource->setLooping(true);
+        //formatReaderSource->setLooping(true);
 
         setSource(formatReaderSource, samplesToPreload, &filePreloadThread, reader->sampleRate);
     }

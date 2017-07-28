@@ -14,16 +14,18 @@
 class FileAudioSource: public AudioTransportSource
 {
 public:
-    FileAudioSource();
+    FileAudioSource(AudioFormatManager* afm, bool setOwnership);
     ~FileAudioSource();
     void setFile(File f);
+
+    File file;
 private:
+    OptionalScopedPointer<AudioFormatManager> formatManager;
     ScopedPointer<AudioFormatReaderSource> formatReaderSource;
     TimeSliceThread filePreloadThread{"filePreThread"};
     AudioTransportSource transportSource;
-    AudioFormatManager formatManager;
     AudioFormatReader* reader;
-    int samplesToPreload {(int)1e6};
+    int samplesToPreload {(int)1e4};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FileAudioSource)
 };

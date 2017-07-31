@@ -13,11 +13,11 @@
 Component* createMainContentComponent();
 
 //==============================================================================
-class pvJuceApplication  : public JUCEApplication
+class pvdonerightApplication  : public JUCEApplication
 {
 public:
     //==============================================================================
-    pvJuceApplication() {}
+    pvdonerightApplication() {}
 
     const String getApplicationName() override       { return ProjectInfo::projectName; }
     const String getApplicationVersion() override    { return ProjectInfo::versionString; }
@@ -104,4 +104,4 @@ private:
 
 //==============================================================================
 // This macro generates the main() routine that launches the app.
-START_JUCE_APPLICATION (pvJuceApplication)
+START_JUCE_APPLICATION (pvdonerightApplication)

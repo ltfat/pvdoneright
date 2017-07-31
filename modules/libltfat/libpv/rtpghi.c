@@ -426,8 +426,19 @@ LTFAT_NAME(rtpghifgrad)(const LTFAT_REAL* phase, ltfat_int M, double stretch,
                      LTFAT_NAME(princarg)(phase[m]     - phase[m - 1]) )
                    / (2.0) * stretch;
 
-    fgrad[0]      = phase[0]*stretch;
-    fgrad[M2 - 1] = phase[M2 - 1]*stretch;
+    fgrad[0]      = phase[0] * stretch;
+    fgrad[M2 - 1] = phase[M2 - 1] * stretch;
+
+    // Experimental: limit the local group delay: helps preventing transient doubling
+    LTFAT_REAL lim = 20;
+    for (ltfat_int m = 0; m < M2; m++)
+    {
+        LTFAT_REAL fgradel = fgrad[m];
+        fgradel = fgradel > lim ? lim :  fgradel;
+        fgradel = fgradel < lim ? -lim : fgradel;
+        fgrad[m] = fgradel;
+    }
+
 }
 
 void

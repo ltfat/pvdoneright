@@ -3,7 +3,7 @@
 <JUCERPROJECT id="nqP2iX" name="pvdoneright" displaySplashScreen="1" reportAppUsage="1"
               splashScreenColour="Dark" projectType="guiapp" version="1.0.0"
               bundleIdentifier="com.yourcompany.pvdoneright" includeBinaryInAppConfig="1"
-              jucerVersion="5.1.0" cppLanguageStandard="11">
+              jucerVersion="5.1.1" cppLanguageStandard="11">
   <MAINGROUP id="Snh5xk" name="pvdoneright">
     <GROUP id="{E99A4F07-4632-60E9-B902-0D0175B3DB5E}" name="Source">
       <FILE id="sNp7Gc" name="FileAudioSource.cpp" compile="1" resource="0"

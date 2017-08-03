@@ -20,9 +20,9 @@ public:
 
     File file;
 private:
+    TimeSliceThread filePreloadThread{"filePreThread"};
     OptionalScopedPointer<AudioFormatManager> formatManager;
     ScopedPointer<AudioFormatReaderSource> formatReaderSource;
-    TimeSliceThread filePreloadThread{"filePreThread"};
     AudioTransportSource transportSource;
     AudioFormatReader* reader;
     int samplesToPreload {(int)1e4};

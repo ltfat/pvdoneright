@@ -18,7 +18,7 @@ public:
     String getTextFromValue( double scal    )
     {
         if (scal >= 0.0)
-            scal = 1.0 + (maxRatio - 1.0) * scal;
+            scal = 1.0/(1.00 - scal * ((maxRatio - 1.0) / maxRatio));
         else
             scal = 1.00 + scal * ((maxRatio - 1.0) / maxRatio);
 
@@ -32,7 +32,7 @@ public:
         double scal = Slider::getValueFromText(scalstr) / 100.0;
 
         if (scal >= 1.0)
-            scal = (scal - 1.0) / (maxRatio - 1);
+            scal = (scal - 1.0) / (scal*(maxRatio - 1)/maxRatio);
         else
             scal = (scal - 1.0) * maxRatio / (maxRatio - 1.0);
 
@@ -119,6 +119,7 @@ public:
 
     ~MainContentComponent()
     {
+        MainContentComponent::formatManager.clearFormats();
         shutdownAudio();
         directoryMonitoringThread.stopThread(1000);
     }
@@ -169,16 +170,29 @@ public:
 
     void resized() override
     {
+        auto r = getLocalBounds().reduced(10,10);
         // This is called when the MainContentComponent is resized.
         // If you add any child components, this is where you should
         // update their positions.
-        stretchSlider.setBounds(10, 20, getWidth() - 10, 20);
-        fileButton.setBounds(10, 45, getWidth() / 4, 20);
-        deviceManagerButton.setBounds(20 + getWidth() / 4, 45, getWidth() / 4 , 20);
-        pBar.setBounds(10, 75, getWidth() / 4, 20);
-        fnamecomp->setBounds(10, 100, getWidth() - 80, 20);
-        upButton.setBounds(getWidth() - 70, 100, 60, 20);
-        fileList->setBounds(10, 130, getWidth() - 20, getHeight() - 90);
+        //
+        //
+
+        //stretchSlider.setBounds(10, 20, getWidth() - 10, 20);
+        stretchSlider.setBounds(r.removeFromTop(40).reduced(0,10));
+
+        // fileButton.setBounds(10, 45, getWidth() / 4, 20);
+        // deviceManagerButton.setBounds(20 + getWidth() / 4, 45, getWidth() / 4 , 20);
+        // fnamecomp->setBounds(10, 100, getWidth() - 80, 20);
+        auto chooserPanel = r.removeFromTop(20);
+        upButton.setBounds(chooserPanel.removeFromRight(50));
+        fnamecomp->setBounds(chooserPanel);
+        // fileList->setBounds(10, 130, getWidth() - 20, getHeight() - 90);
+        r.removeFromTop(10);
+        auto statusPanel = r.removeFromBottom(30).withTrimmedTop(10);
+        pBar.setBounds(statusPanel.removeFromLeft(100));
+        deviceManagerButton.setBounds(statusPanel.removeFromRight(100));
+
+        fileList->setBounds(r);
     }
 
     void sliderValueChanged (Slider* slider) override
@@ -187,9 +201,15 @@ public:
         {
             double scal = stretchSlider.getValue();
             if (scal >= 0.0)
-                scal = 1.0 + (maxRatio - 1.0) * scal;
+                scal = 1.0/(1.00 - scal * ((maxRatio - 1.0) / maxRatio));
             else
                 scal = 1.00 + scal * ((maxRatio - 1.0) / maxRatio);
+
+
+            // if (scal >= 0.0)
+            //     scal = 1.0 + (maxRatio - 1.0) * scal;
+            // else
+            //     scal = 1.00 + scal * ((maxRatio - 1.0) / maxRatio);
             ssource->setScalingRatio(scal);
             // cout << scal << endl;
         }
@@ -344,9 +364,9 @@ private:
     double cpuUsage{0.0};
     ProgressBar pBar{cpuUsage};
 
+    TimeSliceThread directoryMonitoringThread{"dirMonThread"};
     ScopedPointer<DirectoryContentsList> dirCont;
     ScopedPointer<FileListComponent> fileList;
-    TimeSliceThread directoryMonitoringThread{"dirMonThread"};
     ScopedPointer<WildcardFileFilter> ffilter;
     ScopedPointer<FilenameComponent> fnamecomp;
 

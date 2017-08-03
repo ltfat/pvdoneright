@@ -21,7 +21,7 @@ FileAudioSource::~FileAudioSource()
 {
     filePreloadThread.stopThread(1000);
     stop();
-    //reader = nullptr;
+    // formatReaderSource = nullptr;
     setSource(nullptr);
 }
 

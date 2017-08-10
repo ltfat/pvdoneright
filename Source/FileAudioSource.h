@@ -25,7 +25,7 @@ private:
     ScopedPointer<AudioFormatReaderSource> formatReaderSource;
     AudioTransportSource transportSource;
     AudioFormatReader* reader;
-    int samplesToPreload {(int)1e4};
+    int samplesToPreload {(int)1e6};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (FileAudioSource)
 };

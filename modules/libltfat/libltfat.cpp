@@ -24,7 +24,6 @@
 #include "libltfat/src/fftw_wrappers.c"
 #else
 #include "libltfat/thirdparty/kissfft/fft.c"
-#include "libltfat/thirdparty/kissfft/fftr.c"
 #include "libltfat/src/kissfft_wrappers.c"
 #endif
 #include "libltfat/src/ci_memalloc.c"

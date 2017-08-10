@@ -102,15 +102,14 @@ public:
         //showAudioDeviceManagerDialog();
 
         // specify the number of input and output channels that we want to open
-        setAudioChannels (0, 2);
         File folder(String("~"));
         fileButton.setButtonText("Load audio file");
-//#ifdef JUCE_ANDROID
-        fsource->setFile(File("/storage/sdcard0/Music/Walk.wav"));
-//#else
+        setAudioChannels (0, 2);
+#ifdef JUCE_ANDROID
+#else
 //        fsource.setFile(File("~/Desktop/noise.wav"));
-//#endif
-//
+#endif
+
         // dirCont->setDirectory(folder, true, true);
         fnamecomp->setCurrentFile(folder, true, sendNotification);
         fsource->start();

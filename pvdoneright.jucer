@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="nqP2iX" name="pvdoneright" displaySplashScreen="1" reportAppUsage="1"
-              splashScreenColour="Dark" projectType="guiapp" version="1.0.0"
-              bundleIdentifier="com.yourcompany.pvdoneright" includeBinaryInAppConfig="1"
-              jucerVersion="5.1.1" cppLanguageStandard="11">
+              splashScreenColour="Dark" projectType="guiapp" version="0.1.0"
+              bundleIdentifier="at.ac.oeaw.kfs.pvdoneright" includeBinaryInAppConfig="1"
+              jucerVersion="5.1.1" cppLanguageStandard="11" companyWebsite="https://www.kfs.oeaw.ac.at"
+              companyName="Acoustics Research Institute, Austrian Academy of Sciences"
+              companyEmail="zdenek.prusa@oeaw.ac.at">
   <MAINGROUP id="Snh5xk" name="pvdoneright">
     <GROUP id="{E99A4F07-4632-60E9-B902-0D0175B3DB5E}" name="Source">
       <FILE id="sNp7Gc" name="FileAudioSource.cpp" compile="1" resource="0"
@@ -106,5 +108,5 @@
     <MODULE id="libltfat" showAllCode="1" useLocalCopy="0"/>
   </MODULES>
   <JUCEOPTIONS JUCE_JACK="enabled" JUCE_USE_FLAC="enabled" JUCE_USE_OGGVORBIS="enabled"
-               JUCE_USE_MP3AUDIOFORMAT="enabled" USEFFTW="disabled"/>
+               JUCE_USE_MP3AUDIOFORMAT="enabled" USEFFTW="enabled"/>
 </JUCERPROJECT>

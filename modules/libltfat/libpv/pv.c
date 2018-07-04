@@ -109,15 +109,10 @@ LTFAT_NAME(pv_init)(double stretchmax, ltfat_int Wmax, ltfat_int bufLenMax,
     CHECKSTATUS(
         LTFAT_NAME(rtdgtreal_processor_init_win)(
             LTFAT_HANN, gl, asyn, M, Wmax,
-            fifoSize, gl,
-            &p->procstate),
-        "Processor initialization failed"
-    );
+            fifoSize, gl, &p->procstate));
 
     CHECKSTATUS(
-        LTFAT_NAME(rtpghi_init)(Wmax, asyn, M, 1e-6, &p->rtpghistate),
-        "RTPGHI initialization failed"
-    );
+        LTFAT_NAME(rtpghi_init)(Wmax, asyn, M, 1e-6, &p->rtpghistate));
 
     LTFAT_NAME(rtdgtreal_processor_setcallback)(
         p->procstate, LTFAT_NAME(rtpghi_processor_callback), p);

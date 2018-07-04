@@ -15,7 +15,7 @@
   website:          http://ltfat.github.io/libltfat
   license:          GPL
 
-  searchpaths:      libltfat/thirdparty libltfat/include
+  searchpaths:      libltfat/modules/libltfat/include
     linuxLibs:      fftw3f
 
  END_JUCE_MODULE_DECLARATION
@@ -45,8 +45,7 @@
 #endif
 
 #define LTFAT_SINGLE 1
-#define LTFAT_COMPAT32 1
 #define LTFAT_API
 
-#include "libltfat/include/ltfat.h"
+#include "libltfat/modules/libltfat/include/ltfat.h"
 #include "libpv/pv.h"

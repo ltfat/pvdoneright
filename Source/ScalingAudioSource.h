@@ -38,6 +38,7 @@ private:
     int numChannels;
     SpinLock ratioLock;
     ltfat_pv_state_s* pv{nullptr};
+    float* outPtr[10];
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ScalingAudioSource)
 };

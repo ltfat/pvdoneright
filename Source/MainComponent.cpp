@@ -10,6 +10,13 @@
 #include "FileAudioSource.h"
 #include "ScalingAudioSource.h"
 
+enum class PlayerMode
+{
+    TIME_SCALING = 1,
+    PITCH_SHIFTING = 2,
+    TIME_PITCH_SCALING = 3
+};
+
 constexpr static double maxRatio = 10;
 
 class ScalingSlider: public Slider
@@ -51,6 +58,7 @@ class MainContentComponent   :
     public AudioAppComponent,
     public Slider::Listener,
     public Button::Listener,
+    public ComboBox::Listener,
     public KeyListener,
     public FileBrowserListener,
     public FilenameComponentListener,
@@ -67,7 +75,9 @@ public:
 
         fsource = new FileAudioSource(&MainContentComponent::formatManager, false);
         fsource->addChangeListener(this);
-        ssource = new ScalingAudioSource(fsource, false, 2, maxRatio);
+        pre_ressource = new ResamplingAudioSource(fsource, false);
+        ssource = new ScalingAudioSource(pre_ressource, false, 2, maxRatio);
+        post_ressource = new ResamplingAudioSource(ssource, false);
         dirCont = new DirectoryContentsList(ffilter, directoryMonitoringThread);
         fileList = new FileListComponent(*dirCont);
         fileList->addListener(this);
@@ -75,6 +85,14 @@ public:
         fnamecomp = new FilenameComponent(String("Directory"), File(), false, true, false, String(), String(), String());
         addAndMakeVisible(fnamecomp);
         fnamecomp->addListener(this);
+
+        addAndMakeVisible(modelabel);
+        modebox.addItem("Time scaling",static_cast<int>(PlayerMode::TIME_SCALING));
+        modebox.addItem("Pitch shifting",static_cast<int>(PlayerMode::PITCH_SHIFTING));
+        modebox.addItem("Both",static_cast<int>(PlayerMode::TIME_PITCH_SCALING));
+        modebox.setSelectedId(static_cast<int>(PlayerMode::TIME_SCALING));
+        modebox.addListener(this);
+        addAndMakeVisible(modebox);
 
         addAndMakeVisible(fileList);
 
@@ -133,7 +151,8 @@ public:
         // but be careful - it will be called on the audio thread, not the GUI thread.
 
         // For more details, see the help for AudioProcessor::prepareToPlay()
-        ssource->prepareToPlay(samplesPerBlockExpected, sampleRate);
+        //ssource->prepareToPlay(samplesPerBlockExpected, sampleRate);
+        post_ressource->prepareToPlay(samplesPerBlockExpected, sampleRate);
         // ssource.setScalingRatio(1.0/2.0596);
     }
 
@@ -145,7 +164,7 @@ public:
 
         // Right now we are not producing any data, in which case we need to clear the buffer
         // (to prevent the output of random noise)
-        ssource->getNextAudioBlock(bufferToFill);
+        post_ressource->getNextAudioBlock(bufferToFill);
 
         cpuUsage = AudioAppComponent::deviceManager.getCpuUsage();
     }
@@ -177,6 +196,7 @@ public:
         //
 
         //stretchSlider.setBounds(10, 20, getWidth() - 10, 20);
+        modebox.setBounds(r.removeFromTop(40).reduced(0,10));
         stretchSlider.setBounds(r.removeFromTop(40).reduced(0,10));
 
         // fileButton.setBounds(10, 45, getWidth() / 4, 20);
@@ -194,6 +214,12 @@ public:
         fileList->setBounds(r);
     }
 
+    void comboBoxChanged (ComboBox* comboBoxThatHasChanged) override
+    {
+        mode = static_cast<PlayerMode>(comboBoxThatHasChanged->getSelectedId());
+        sliderValueChanged(&stretchSlider);
+    }
+
     void sliderValueChanged (Slider* slider) override
     {
         if (slider == &stretchSlider)
@@ -209,7 +235,26 @@ public:
             //     scal = 1.0 + (maxRatio - 1.0) * scal;
             // else
             //     scal = 1.00 + scal * ((maxRatio - 1.0) / maxRatio);
-            ssource->setScalingRatio(scal);
+            //
+            if( mode == PlayerMode::PITCH_SHIFTING )
+            {
+                pre_ressource->setResamplingRatio(jmax(1.0,1.0/scal));
+                post_ressource->setResamplingRatio(jmin(1.0,1.0/scal));
+                ssource->setScalingRatio(scal);
+            }
+            else if( mode == PlayerMode::TIME_SCALING)
+            {
+                pre_ressource->setResamplingRatio(1);
+                post_ressource->setResamplingRatio(1);
+                ssource->setScalingRatio(scal);
+            }
+            else if ( mode == PlayerMode::TIME_PITCH_SCALING)
+            {
+                pre_ressource->setResamplingRatio(jmax(1.0,1.0/scal));
+                post_ressource->setResamplingRatio(jmin(1.0,1.0/scal));
+                ssource->setScalingRatio(1.0);
+            }
+
             // cout << scal << endl;
         }
     }
@@ -354,7 +399,9 @@ private:
 
     // Your private member variables go here...
     ScopedPointer<FileAudioSource> fsource;
+    ScopedPointer<ResamplingAudioSource> pre_ressource;
     ScopedPointer<ScalingAudioSource> ssource;
+    ScopedPointer<ResamplingAudioSource> post_ressource;
 
     ScalingSlider stretchSlider;
     TextButton fileButton{"Load Audio File"};
@@ -362,12 +409,15 @@ private:
     TextButton upButton{"Up"};
     double cpuUsage{0.0};
     ProgressBar pBar{cpuUsage};
+    Label modelabel{"Playback mode:"};
+    ComboBox modebox;
 
     TimeSliceThread directoryMonitoringThread{"dirMonThread"};
     ScopedPointer<DirectoryContentsList> dirCont;
     ScopedPointer<FileListComponent> fileList;
     ScopedPointer<WildcardFileFilter> ffilter;
     ScopedPointer<FilenameComponent> fnamecomp;
+    PlayerMode mode {PlayerMode::TIME_SCALING};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 public:

@@ -3,7 +3,7 @@
 <JUCERPROJECT id="nqP2iX" name="pvdoneright" displaySplashScreen="1" reportAppUsage="1"
               splashScreenColour="Dark" projectType="guiapp" version="0.1.0"
               bundleIdentifier="at.ac.oeaw.kfs.pvdoneright" includeBinaryInAppConfig="1"
-              jucerVersion="5.1.1" cppLanguageStandard="11" companyWebsite="https://www.kfs.oeaw.ac.at"
+              jucerVersion="5.3.2" cppLanguageStandard="11" companyWebsite="https://www.kfs.oeaw.ac.at"
               companyName="Acoustics Research Institute, Austrian Academy of Sciences"
               companyEmail="zdenek.prusa@oeaw.ac.at">
   <MAINGROUP id="Snh5xk" name="pvdoneright">
@@ -107,6 +107,9 @@
     <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0"/>
     <MODULE id="libltfat" showAllCode="1" useLocalCopy="0"/>
   </MODULES>
-  <JUCEOPTIONS JUCE_JACK="enabled" JUCE_USE_FLAC="enabled" JUCE_USE_OGGVORBIS="enabled"
-               JUCE_USE_MP3AUDIOFORMAT="enabled" USEFFTW="enabled"/>
+  <JUCEOPTIONS JUCE_JACK="1" JUCE_USE_FLAC="1" JUCE_USE_OGGVORBIS="1" JUCE_USE_MP3AUDIOFORMAT="1"
+               USEFFTW="1"/>
+  <LIVE_SETTINGS>
+    <LINUX/>
+  </LIVE_SETTINGS>
 </JUCERPROJECT>

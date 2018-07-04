@@ -27,8 +27,16 @@ public:
     void initialise (const String& commandLine) override
     {
         // This method is where you should put your application's initialisation code..
-
-        mainWindow = new MainWindow (getApplicationName());
+        if ( commandLine.isEmpty() )
+        {
+            mainWindow = new MainWindow (getApplicationName());
+        }
+        else
+        {
+            std::cout << commandLine << std::endl;
+            std::cout << "Command line not supported" << std::endl;
+            systemRequestedQuit();
+        }
     }
 
     void shutdown() override

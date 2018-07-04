@@ -68,7 +68,9 @@ void ScalingAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& info)
     input->getNextAudioBlock (readInfo);
 
     const float** inPtr = buffer.getArrayOfReadPointers();
-    float** outPtr = info.buffer->getArrayOfWritePointers();
+
+    for(int ch=0;ch<channels;ch++)
+        outPtr[ch] = info.buffer->getWritePointer(ch,info.startSample);
 
     ltfat_pv_execute_s(pv,inPtr,inLen, channels, localRatio, outLen, outPtr);
 

@@ -103,8 +103,7 @@ LTFAT_NAME(rtpghi_init)(ltfat_int W, ltfat_int a, ltfat_int M,
 
     CHECKMEM( p = (LTFAT_NAME(rtpghi_state)*) ltfat_calloc(1, sizeof * p));
 
-    CHECKSTATUS( LTFAT_NAME(rtpghiupdate_init)( M, W, tol, &p->p),
-                 "rtpghiupdate_init failed");
+    CHECKSTATUS( LTFAT_NAME(rtpghiupdate_init)( M, W, tol, &p->p));
     CHECKMEM( p->s =       LTFAT_NAME_REAL(calloc)(3 * M2 * W));
     CHECKMEM( p->tgrad =   LTFAT_NAME_REAL(calloc)(2 * M2 * W));
     CHECKMEM( p->fgrad =   LTFAT_NAME_REAL(calloc)(1 * M2 * W));
@@ -470,8 +469,12 @@ void
 LTFAT_NAME(rtpghimagphase)(const LTFAT_REAL* s, const LTFAT_REAL* phase,
                            ltfat_int L, LTFAT_COMPLEX* c)
 {
+    LTFAT_REAL* casreal = (LTFAT_REAL*) c;
     for (ltfat_int l = 0; l < L; l++)
-        c[l] = s[l] * (cos(phase[l]) + I * sin(phase[l]));
+    {
+        casreal[2*l] = s[l] * cos(phase[l]);
+        casreal[2*l+1] = s[l] * sin(phase[l]);
+    }
 }
 
 /* LTFAT_API int */

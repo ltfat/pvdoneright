@@ -17,6 +17,13 @@ enum class PlayerMode
     TIME_PITCH_SCALING = 3
 };
 
+enum class PlayerState
+{
+    PAUSED = 1,
+    PLAYING = 2,
+    STOPPED = 3
+};
+
 constexpr static double maxRatio = 10;
 
 class ScalingSlider: public Slider
@@ -72,6 +79,7 @@ public:
         MainContentComponent::formatManager.registerBasicFormats();
         ffilter = new WildcardFileFilter(MainContentComponent::formatManager.getWildcardForAllFormats(),
                                          String("*"), String("Audio Files"));
+        wildcards = MainContentComponent::formatManager.getWildcardForAllFormats().replace("*","");
 
         fsource = new FileAudioSource(&MainContentComponent::formatManager, false);
         fsource->addChangeListener(this);
@@ -86,13 +94,20 @@ public:
         addAndMakeVisible(fnamecomp);
         fnamecomp->addListener(this);
 
-        addAndMakeVisible(modelabel);
+        addAndMakeVisible(&modelabel);
         modebox.addItem("Time scaling",static_cast<int>(PlayerMode::TIME_SCALING));
         modebox.addItem("Pitch shifting",static_cast<int>(PlayerMode::PITCH_SHIFTING));
         modebox.addItem("Both",static_cast<int>(PlayerMode::TIME_PITCH_SCALING));
         modebox.setSelectedId(static_cast<int>(PlayerMode::TIME_SCALING));
         modebox.addListener(this);
-        addAndMakeVisible(modebox);
+        addAndMakeVisible(&modebox);
+
+        addAndMakeVisible(&playpauseButton);
+        playpauseButton.addListener(this);
+        addAndMakeVisible(&prevTrackButton);
+        prevTrackButton.addListener(this);
+        addAndMakeVisible(&nextTrackButton);
+        nextTrackButton.addListener(this);
 
         addAndMakeVisible(fileList);
 
@@ -196,8 +211,10 @@ public:
         //
 
         //stretchSlider.setBounds(10, 20, getWidth() - 10, 20);
-        modebox.setBounds(r.removeFromTop(40).reduced(0,10));
+        modebox.setBounds(r.removeFromTop(40).reduced(60,4));
         stretchSlider.setBounds(r.removeFromTop(40).reduced(0,10));
+        // auto buttonPannel = r.removeFromTop(40).withSizeKeepingCentre(90,30);
+
 
         // fileButton.setBounds(10, 45, getWidth() / 4, 20);
         // deviceManagerButton.setBounds(20 + getWidth() / 4, 45, getWidth() / 4 , 20);
@@ -208,6 +225,13 @@ public:
         // fileList->setBounds(10, 130, getWidth() - 20, getHeight() - 90);
         r.removeFromTop(10);
         auto statusPanel = r.removeFromBottom(30).withTrimmedTop(10);
+
+        auto buttonPannel = statusPanel.withSizeKeepingCentre(90,30);
+
+        prevTrackButton.setBounds(buttonPannel.removeFromLeft(30).reduced(5,5));
+        playpauseButton.setBounds(buttonPannel.removeFromLeft(30));
+        nextTrackButton.setBounds(buttonPannel.reduced(5,5));
+
         pBar.setBounds(statusPanel.removeFromLeft(100));
         deviceManagerButton.setBounds(statusPanel.removeFromRight(100));
 
@@ -238,9 +262,9 @@ public:
             //
             if( mode == PlayerMode::PITCH_SHIFTING )
             {
-                pre_ressource->setResamplingRatio(jmax(1.0,1.0/scal));
-                post_ressource->setResamplingRatio(jmin(1.0,1.0/scal));
-                ssource->setScalingRatio(scal);
+                pre_ressource->setResamplingRatio(jmax(1.0,scal));
+                post_ressource->setResamplingRatio(jmin(1.0,scal));
+                ssource->setScalingRatio(1.0/scal);
             }
             else if( mode == PlayerMode::TIME_SCALING)
             {
@@ -250,14 +274,61 @@ public:
             }
             else if ( mode == PlayerMode::TIME_PITCH_SCALING)
             {
-                pre_ressource->setResamplingRatio(jmax(1.0,1.0/scal));
-                post_ressource->setResamplingRatio(jmin(1.0,1.0/scal));
+                pre_ressource->setResamplingRatio(jmax(1.0,scal));
+                post_ressource->setResamplingRatio(jmin(1.0,scal));
                 ssource->setScalingRatio(1.0);
             }
 
             // cout << scal << endl;
         }
     }
+
+    bool tryToPlayFile(File ftmp)
+    {
+        if (!ftmp.isDirectory() && ftmp.hasFileExtension(wildcards))
+        {
+            fileList->setSelectedFile(ftmp);
+            fsource->setFile(ftmp);
+            fsource->start();
+            playpauseButton.setToggleState(true,dontSendNotification);
+            return true;
+        }
+        playpauseButton.setToggleState(false,dontSendNotification);
+        return false;
+    }
+
+    void playNextSong(bool nextSong)
+    {
+        if (fnamecomp->getCurrentFile() == fsource->file.getParentDirectory() )
+            {
+                int currIdx = -1;
+                for (int fIdx = 0; fIdx < dirCont->getNumFiles(); fIdx++)
+                {
+                    File ftmp = dirCont->getFile(fIdx);
+                    if (fsource->file == ftmp)
+                    {
+                        currIdx = fIdx;
+                        break;
+                    }
+                }
+
+                if (currIdx < 0) return;
+
+
+                if (nextSong)
+                {
+                    for (int fIdx = currIdx + 1; fIdx < dirCont->getNumFiles(); fIdx++)
+                        if(tryToPlayFile( dirCont->getFile(fIdx))) break;
+                }
+                else
+                {
+                    for (int fIdx = currIdx - 1; fIdx >= 0; fIdx--)
+                        if(tryToPlayFile( dirCont->getFile(fIdx))) break;
+                }
+
+            }
+    }
+
 
     void buttonClicked (Button* b) override
     {
@@ -268,9 +339,7 @@ public:
             if (fc.browseForFileToOpen())
             {
                 File f(fc.getResult());
-
-                fsource->setFile(f);
-                fsource->start();
+                tryToPlayFile(f);
             }
 #endif
         }
@@ -282,6 +351,22 @@ public:
         {
             File parent = fnamecomp->getCurrentFile().getParentDirectory();
             fnamecomp->setCurrentFile(parent, true, sendNotification);
+        }
+        else if (b == &nextTrackButton)
+        {
+            playNextSong(true);
+        }
+        else if (b == &prevTrackButton)
+        {
+            playNextSong(false);
+        }
+        else if (b == &playpauseButton)
+        {
+            if( playpauseButton.getToggleState())
+                fsource->start();
+            else
+                fsource->stop();
+
         }
     }
 
@@ -322,8 +407,7 @@ public:
         }
         else
         {
-            fsource->setFile(file);
-            fsource->start();
+            tryToPlayFile(file);
         }
     }
 
@@ -338,40 +422,10 @@ public:
     void changeListenerCallback(ChangeBroadcaster* source)
     {
         if (fsource->hasStreamFinished())
-        {
-            if (fnamecomp->getCurrentFile() == fsource->file.getParentDirectory() )
-            {
-                int currIdx = -1;
-                for (int fIdx = 0; fIdx < dirCont->getNumFiles(); fIdx++)
-                {
-                    File ftmp = dirCont->getFile(fIdx);
-                    if (fsource->file == ftmp)
-                    {
-                        currIdx = fIdx;
-                        break;
-                    }
-                }
-
-                if (currIdx < 0) return;
-
-                String wildcards= MainContentComponent::formatManager.getWildcardForAllFormats().replace("*","");
-
-                for (int fIdx = currIdx + 1; fIdx < dirCont->getNumFiles(); fIdx++)
-                {
-                    File ftmp = dirCont->getFile(fIdx);
-                    if (!ftmp.isDirectory() && ftmp.hasFileExtension(wildcards))
-                    {
-                        fileList->setSelectedFile(ftmp);
-                        fsource->setFile(ftmp);
-                        fsource->start();
-                        break;
-                    }
-                }
-
-
-            }
-        }
+            playNextSong(true);
     }
+
+
 
     void showAudioDeviceManagerDialog()
     {
@@ -407,6 +461,11 @@ private:
     TextButton fileButton{"Load Audio File"};
     TextButton deviceManagerButton{"Open Device Manager"};
     TextButton upButton{"Up"};
+
+    ToggleButton playpauseButton;
+    ArrowButton prevTrackButton{String("Prev"), 0.5f, Colours::white};
+    ArrowButton nextTrackButton{String("Next"), 0.0f, Colours::white};
+
     double cpuUsage{0.0};
     ProgressBar pBar{cpuUsage};
     Label modelabel{"Playback mode:"};
@@ -418,6 +477,8 @@ private:
     ScopedPointer<WildcardFileFilter> ffilter;
     ScopedPointer<FilenameComponent> fnamecomp;
     PlayerMode mode {PlayerMode::TIME_SCALING};
+
+    String wildcards;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
 public:

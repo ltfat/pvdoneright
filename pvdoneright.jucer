@@ -108,7 +108,7 @@
     <MODULE id="libltfat" showAllCode="1" useLocalCopy="0"/>
   </MODULES>
   <JUCEOPTIONS JUCE_JACK="1" JUCE_USE_FLAC="1" JUCE_USE_OGGVORBIS="1" JUCE_USE_MP3AUDIOFORMAT="1"
-               USEFFTW="1"/>
+               USEFFTW="0"/>
   <LIVE_SETTINGS>
     <LINUX/>
   </LIVE_SETTINGS>

@@ -385,6 +385,10 @@ public:
 
             stretchSlider.setValue(stretchSlider.getValue() - jumpby);
         }
+        else if (key == KeyPress::spaceKey)
+        {
+            playpauseButton.setToggleState(!playpauseButton.getToggleState(),sendNotification);
+        }
         return true;
     }
 

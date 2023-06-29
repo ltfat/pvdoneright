@@ -77,21 +77,21 @@ public:
     MainContentComponent()
     {
         MainContentComponent::formatManager.registerBasicFormats();
-        ffilter = new WildcardFileFilter(MainContentComponent::formatManager.getWildcardForAllFormats(),
+        ffilter = std::make_unique<WildcardFileFilter>(MainContentComponent::formatManager.getWildcardForAllFormats(),
                                          String("*"), String("Audio Files"));
         wildcards = MainContentComponent::formatManager.getWildcardForAllFormats().replace("*","");
 
-        fsource = new FileAudioSource(&MainContentComponent::formatManager, false);
+        fsource = std::make_unique<FileAudioSource>(&MainContentComponent::formatManager, false);
         fsource->addChangeListener(this);
-        pre_ressource = new ResamplingAudioSource(fsource, false);
-        ssource = new ScalingAudioSource(pre_ressource, false, 2, maxRatio);
-        post_ressource = new ResamplingAudioSource(ssource, false);
-        dirCont = new DirectoryContentsList(ffilter, directoryMonitoringThread);
-        fileList = new FileListComponent(*dirCont);
+        pre_ressource = std::make_unique<ResamplingAudioSource>(fsource.get(), false);
+        ssource = std::make_unique<ScalingAudioSource>(pre_ressource.get(), false, 2, maxRatio);
+        post_ressource = std::make_unique<ResamplingAudioSource>(ssource.get(), false);
+        dirCont = std::make_unique<DirectoryContentsList>(ffilter.get(), directoryMonitoringThread);
+        fileList = std::make_unique<FileListComponent>(*dirCont.get());
         fileList->addListener(this);
 
-        fnamecomp = new FilenameComponent(String("Directory"), File(), false, true, false, String(), String(), String());
-        addAndMakeVisible(fnamecomp);
+        fnamecomp = std::make_unique<FilenameComponent>(String("Directory"), File(), false, true, false, String(), String(), String());
+        addAndMakeVisible(fnamecomp.get());
         fnamecomp->addListener(this);
 
         addAndMakeVisible(&modelabel);
@@ -109,7 +109,7 @@ public:
         addAndMakeVisible(&nextTrackButton);
         nextTrackButton.addListener(this);
 
-        addAndMakeVisible(fileList);
+        addAndMakeVisible(fileList.get());
 
         addAndMakeVisible (stretchSlider);
         stretchSlider.setRange (-1, 1, 0.0005);
@@ -456,10 +456,10 @@ private:
     //==============================================================================
 
     // Your private member variables go here...
-    ScopedPointer<FileAudioSource> fsource;
-    ScopedPointer<ResamplingAudioSource> pre_ressource;
-    ScopedPointer<ScalingAudioSource> ssource;
-    ScopedPointer<ResamplingAudioSource> post_ressource;
+    std::unique_ptr<FileAudioSource> fsource;
+    std::unique_ptr<ResamplingAudioSource> pre_ressource;
+    std::unique_ptr<ScalingAudioSource> ssource;
+    std::unique_ptr<ResamplingAudioSource> post_ressource;
 
     ScalingSlider stretchSlider;
     TextButton fileButton{"Load Audio File"};
@@ -476,10 +476,10 @@ private:
     ComboBox modebox;
 
     TimeSliceThread directoryMonitoringThread{"dirMonThread"};
-    ScopedPointer<DirectoryContentsList> dirCont;
-    ScopedPointer<FileListComponent> fileList;
-    ScopedPointer<WildcardFileFilter> ffilter;
-    ScopedPointer<FilenameComponent> fnamecomp;
+    std::unique_ptr<DirectoryContentsList> dirCont;
+    std::unique_ptr<FileListComponent> fileList;
+    std::unique_ptr<WildcardFileFilter> ffilter;
+    std::unique_ptr<FilenameComponent> fnamecomp;
     PlayerMode mode {PlayerMode::TIME_SCALING};
 
     String wildcards;

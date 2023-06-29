@@ -36,10 +36,10 @@ void FileAudioSource::setFile(File f)
     if (reader != nullptr)
     {
         file = f;
-        formatReaderSource = new AudioFormatReaderSource(reader, true);
+        formatReaderSource = std::make_unique<AudioFormatReaderSource>(reader, true);
         //formatReaderSource->setLooping(true);
 
-        setSource(formatReaderSource, samplesToPreload, &filePreloadThread, reader->sampleRate);
+        setSource(formatReaderSource.get(), samplesToPreload, &filePreloadThread, reader->sampleRate);
     }
 
 }

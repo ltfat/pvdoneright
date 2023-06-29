@@ -3,9 +3,9 @@
 <JUCERPROJECT id="nqP2iX" name="pvdoneright" displaySplashScreen="1" reportAppUsage="1"
               splashScreenColour="Dark" projectType="guiapp" version="0.1.0"
               bundleIdentifier="at.ac.oeaw.kfs.pvdoneright" includeBinaryInAppConfig="1"
-              jucerVersion="5.4.5" cppLanguageStandard="11" companyWebsite="https://www.kfs.oeaw.ac.at"
-              companyName="Acoustics Research Institute, Austrian Academy of Sciences"
-              companyEmail="zdenek.prusa@oeaw.ac.at">
+              companyWebsite="https://www.kfs.oeaw.ac.at" companyName="Acoustics Research Institute, Austrian Academy of Sciences"
+              companyEmail="zdenek.prusa@oeaw.ac.at" jucerFormatVersion="1"
+              defines="JUCE_MODAL_LOOPS_PERMITTED=1&#10;" cppLanguageStandard="17">
   <MAINGROUP id="Snh5xk" name="pvdoneright">
     <GROUP id="{E99A4F07-4632-60E9-B902-0D0175B3DB5E}" name="Source">
       <FILE id="sNp7Gc" name="FileAudioSource.cpp" compile="1" resource="0"

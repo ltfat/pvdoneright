@@ -22,7 +22,7 @@ public:
 private:
     TimeSliceThread filePreloadThread{"filePreThread"};
     OptionalScopedPointer<AudioFormatManager> formatManager;
-    ScopedPointer<AudioFormatReaderSource> formatReaderSource;
+    std::unique_ptr<AudioFormatReaderSource> formatReaderSource;
     AudioTransportSource transportSource;
     AudioFormatReader* reader;
     int samplesToPreload {(int)1e6};

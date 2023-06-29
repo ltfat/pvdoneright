@@ -29,7 +29,7 @@ public:
         // This method is where you should put your application's initialisation code..
         if ( commandLine.isEmpty() )
         {
-            mainWindow = new MainWindow (getApplicationName());
+            mainWindow = std::make_unique<MainWindow>(getApplicationName());
         }
         else
         {
@@ -107,7 +107,7 @@ public:
     };
 
 private:
-    ScopedPointer<MainWindow> mainWindow;
+    std::unique_ptr<MainWindow> mainWindow;
 };
 
 //==============================================================================

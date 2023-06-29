@@ -67,7 +67,7 @@ void ScalingAudioSource::getNextAudioBlock (const AudioSourceChannelInfo& info)
     AudioSourceChannelInfo readInfo (&buffer, 0, inLen);
     input->getNextAudioBlock (readInfo);
 
-    const float** inPtr = buffer.getArrayOfReadPointers();
+    auto inPtr = const_cast<const float**>( buffer.getArrayOfReadPointers() );
 
     for(int ch=0;ch<channels;ch++)
         outPtr[ch] = info.buffer->getWritePointer(ch,info.startSample);

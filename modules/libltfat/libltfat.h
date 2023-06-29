@@ -47,5 +47,7 @@
 #define LTFAT_SINGLE 1
 #define LTFAT_API
 
+#define NDEBUG 1
+
 #include "libltfat/modules/libltfat/include/ltfat.h"
 #include "libpv/pv.h"

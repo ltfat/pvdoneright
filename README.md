@@ -1,6 +1,24 @@
 # Phase Vocoder Done Right
 
+Source code of the demo application accompanying paper
 
+```
+Z. Průša and N. Holighaus. Phase vocoder done right. In Proc. Eur. Signal Process. Conf. EUSIPCO, pages
+1006–1010, Kos island, Greece, Aug. 2017.
+```
+
+## Dependencies
+
+* JUCE 7
+
+## License
+
+This project is licensed under the GPLv3 License - see the LICENSE file for details
+
+## Citing
+
+If you find this code helpful in your academic work, please cite the paper. 
+Here is a bibtex entry. 
 
 ```
 @InProceedings{ltfatnote050,
@@ -15,3 +33,5 @@
     isbn                     = {978-0-9928626-8-8}
 }
 ```
+
+Extra points for getting my name right.
